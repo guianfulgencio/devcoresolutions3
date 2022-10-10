@@ -1,0 +1,92 @@
+#########################################################################
+#################### Use Paginated REST API Endpoint #################### 
+#########################################################################
+
+********************************************
+****************** Task 2 ****************** 
+********************************************
+** Step 5 **
+pipenv install
+
+** Step 6 **
+pipenv shell
+
+********************************************
+****************** Task 3 ****************** 
+********************************************
+** Step 4 **
+    def get_messages(self):
+        """ Get a list of messages in a room. 
+        Maximum number of items per page is set to 3 """
+        print(f'Requesting {self.api_url}')
+        self.response = self.requests.get(self.api_url, headers=self.headers)
+        print(json.dumps(self.response.json(),indent=4))
+        return self.response
+
+** Step 5 **
+    def test_get_messages(self):
+        # Check if any messages exist
+        messages = self.msg.get_messages().json().get('items')
+        self.assertGreater(len(messages), 0)
+
+********************************************
+****************** Task 4 ****************** 
+********************************************
+** Step 1 **
+    def has_next_page(self):
+        """ Check if more pages are available and set the cursor to next page.
+        URI is parsed from the response Link Header """
+        if self.response.headers.get('Link'):
+            parsed_link_header = self._get_parsed_link_header().get('url')
+            self.api_url = parsed_link_header
+            return True
+        else:
+            return False
+
+** Step 2 **
+    def test_has_next_page(self):
+        # Check if there are more pages of messages available
+        self.msg.get_messages()
+        self.assertTrue(self.msg.has_next_page())
+
+********************************************
+****************** Task 5 ****************** 
+********************************************
+** Step 1 **
+    def test_get_next_page(self):
+        # Get the first page
+        print('GET FIRST PAGE')
+        messages = self.msg.get_messages().json().get('items')
+        self.assertGreater(len(messages), 0)
+        self.assertTrue(self.msg.has_next_page())
+
+        # Get the next page
+        print('GET NEXT PAGE')
+        messages = self.msg.get_messages().json().get('items')
+        self.assertGreater(len(messages), 0)
+
+********************************************
+****************** Task 8 ****************** 
+********************************************
+** Step 3 **
+    def set_room_id(self):
+        """ Retrieves the room memberships for the bot 
+            and sets the room_id variable to the first roomId in the list """
+        self.response = self.requests.get(
+            "https://api.ciscospark.com/v1/memberships",
+            headers=self.headers,
+        )
+        room_list = self.response.json().get("items")
+        for room in room_list:
+            print(f"roomId: {room.get('roomId')}")
+            print(
+                f"personDisplayName: {room.get('personDisplayName')}"
+            )
+            print()
+        self.room_id = room_list[0].get("roomId")
+        self.api_url = f"{self.base_url}?roomId={self.room_id}&max={max_items}"
+        print(f"##### room_id SET TO {self.room_id}\n")
+        return self.room_id
+
+** Step 5 **
+python main.py
